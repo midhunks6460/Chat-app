@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Chat Application</title>
+</head>
+<body>
+    <h1>Chat Application</h1>
+
+    <div id="chat">
+        <ul id="message-list"></ul>
+    </div>
+
+    <textarea id="message-input" placeholder="Type a message"></textarea>
+    <button onclick="sendMessage()">Send</button>
+
+    <script>
+        const messageList = document.getElementById('message-list');
+        const messageInput = document.getElementById('message-input');
+
+        function displayMessage(message) {
+            const listItem = document.createElement('li');
+            listItem.innerText = message;
+            messageList.appendChild(listItem);
+        }
+
+        function getMessages() {
+            fetch('/get_messages')
+                .then(response => response.json())
+                .then(data => {
+                    messageList.innerHTML = '';  // Clear previous messages
+                    data.forEach(message => {
+                        displayMessage(message);
+                    });
+                });
+        }
+
+        function sendMessage() {
+            const message = messageInput.value;
+            if (message.trim() !== '') {
+                fetch('/send_message', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/x-www-form-urlencoded',
+                    },
+                    body: `message=${encodeURIComponent(message)}`,
+                }).then(() => {
+                    displayMessage(message);
+                    messageInput.value = '';  // Clear the input after sending
+                });
+            }
+        }
+
+        // Get initial messages and start polling for new messages every 3 seconds
+        getMessages();
+        setInterval(getMessages, 3000);
+    </script>
+</body>
+</html>
